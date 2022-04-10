@@ -1,5 +1,7 @@
 import math
-
+from copy import deepcopy
+import time
+import random
 class Node:
     def __init__(self,parent,color,board,action):
         self.parent = parent
@@ -32,9 +34,7 @@ class Node:
         l2 = list(board.get_legal_actions('O'))
         return len(l1)==0 and len(l2)==0
 
-from copy import deepcopy
-import time
-import random
+
 
 class MCT:
     def __init__(self,board,color):
@@ -59,7 +59,17 @@ class MCT:
         return bestChild
 
     def search(self,C):
+
         node = self.root
+
+        if 'A1' in node.state.get_legal_actions(self.color):
+            return 'A1'
+        if 'A8' in node.state.get_legal_actions(self.color):
+            return 'A8'
+        if 'H8' in node.state.get_legal_actions(self.color):
+            return 'H8'
+        if 'H1' in node.state.get_legal_actions(self.color):
+            return 'H1'
 
         #只有一种选择的情况
         if len(node.unvisited_actions)==1:
@@ -79,6 +89,8 @@ class MCT:
         selectednode = node
         while not selectednode.isover:
             if not selectednode.is_full_expended():
+                if selectednode.visited<10:
+                    return selectednode
                 return self.expand(selectednode)
             else:
                 selectednode = self.best_child(selectednode, self.C, selectednode.color)
@@ -89,18 +101,22 @@ class MCT:
         return selectednode
 
     def expand(self,node):
+
+        
+            
+
         action = random.choice(node.unvisited_actions)
         newboard = deepcopy(node.board)
-        newboard._move(action,node.color)
+        
+        if len(node.unvisited_actions)==0:
+            pass
+        else:
+            newboard._move(action,node.color)
 
         if node.color=='X':
             newcolor='O'
         else:
             newcolor='X'
-
-        #下一步可能另一个颜色走不了，那么newcolor就是self.color
-        if len(list(newboard.get_legal_actions(newcolor)))==0:
-            newcolor=self.color
 
         new_node = Node(node,newcolor,newboard,action)
         node.add_child(new_node)
@@ -118,7 +134,17 @@ class MCT:
             if len(actions) == 0:
                 action = None
             else:
-                action = random.choice(actions)
+                if 'A1' in actions:
+                    action = 'A1'
+                elif 'A8' in actions:
+                    action = 'A8'
+                elif 'H1' in actions:
+                    action = 'H1'
+                elif 'H8' in actions:
+                    action = 'H8'
+     
+                else:
+                    action = random.choice(actions)
             
             if action is None:
                 pass
@@ -174,7 +200,7 @@ class AIPlayer:
         # -----------------请实现你的算法代码--------------------------------------
 
         mcts = MCT(deepcopy(board), self.color)
-        action = mcts.search(1.44)
+        action = mcts.search(1.2)
         # ------------------------------------------------------------------------
 
         return action
